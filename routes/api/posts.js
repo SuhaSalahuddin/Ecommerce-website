@@ -5,6 +5,7 @@ const passport = require("passport");
 
 // Load validation
 const validatePostInput = require("../../validation/post");
+const validateRateInput = require("../../validation/rate");
 
 // Load models
 const Post = require("../../models/Post");
@@ -176,7 +177,7 @@ router.post(
   "/rate/:id",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    const { errors, isValid } = validatePostInput(req.body);
+    const { errors, isValid } = validateRateInput(req.body);
 
     // Check validation
     if (!isValid) {
@@ -186,27 +187,34 @@ router.post(
     Seller.findOne({ user: req.user.id }).then(seller => {
       Post.findById(req.params.id)
         .then(post => {
-          // // Check to see if rate exist
-          // const rate = post.rates.find(
-          //   rate => rate._id == reqCommentId
-          // );
+          // check to see if user has already rated the post
+          if (
+            post.rates.filter(rate => rate.user.toString() === req.user.id)
+              .length > 0
+          ) {
+            return res
+              .status(400)
+              .json({ message: "User already rated this post" });
+          }
 
-          // if (
-          //   post.rates.filter(rate => rate.user.toString() === req.user.id)
-          //     .length > 0
-          // ) {
-          //   return res
-          //     .status(400)
-          //     .json({ message: "User already rated this post" });
-          // }
+          // New Rate
+          else {
+            Post.findById(req.params.id).then(post => {
+              const newRate = {
+                star: req.body.star,
+                user: req.user.id
+              };
 
-          //Add user id to rate's array
-          post.rates.unshift({ user: req.user.id });
+              //Add user id & rating to rate's array
+              post.rates.unshift(newRate);
 
-          post.save().then(post => res.json(post));
+              // Save
+              post.save().then(post => res.json(post));
+            });
+          }
         })
-        // .catch(err => res.status(404).json({ postnotfound: "No post found" }));
-        .catch(err => console.log("Err", err));
+        .catch(err => res.status(404).json({ postnotfound: "No post found" }));
+      // .catch(err => console.log("Err", err));
     });
   }
 );

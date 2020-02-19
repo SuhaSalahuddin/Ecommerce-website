@@ -21,9 +21,8 @@ const PostSchema = new Schema({
         ref: "buyers"
       },
       star: {
-        //star
-        type: Number,
-        required: true
+        type: Number
+        // required: true
       }
     }
   ],

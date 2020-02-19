@@ -24,15 +24,8 @@ module.exports = function validatePostInput(data) {
   // }
 
   // const star = typy(data, "rates.star").safeObject;
-  const star = data && data.rates ? data.rates.star : null;
 
-  // Rate
-  if (!Validator.isLength(star, { min: 1, max: 5 })) {
-    errors.rate = "Rating must be between 1 & 5 stars";
-  }
-  if (Validator.isEmpty(star)) {
-    errors.rate = "Rating field is required";
-  }
+  // const star = data && data.rates ? data.rates.star : null;
 
   return {
     errors: errors,
