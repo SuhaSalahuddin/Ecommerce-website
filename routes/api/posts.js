@@ -67,6 +67,47 @@ router.post(
   }
 );
 
+// @route   POST api/posts/:id
+// @desc    Edit a post
+// @access  Private
+router.post(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    Seller.findOne({ seller: req.user.id }).then(seller => {
+      Post.findById(req.params.id)
+        .then(post => {
+          // Check for the post owner
+          if (post.seller.toString() != req.user.id) {
+            return res
+              .status(401)
+              .json({ notauthorized: "User not authorized" });
+          }
+
+          // Update post
+          if (post) {
+            Post.findOneAndUpdate(
+              { _id: req.params.id },
+              {
+                $set: {
+                  text: req.body.text,
+                  name: req.body.name,
+                  date: Date.now()
+                }
+              },
+              { new: true }
+            )
+              .then(post => res.json(post))
+              .catch(error => {
+                throw error;
+              });
+          }
+        })
+        .catch(err => res.status(404).json({ postnotfound: "No post found" }));
+    });
+  }
+);
+
 // @route   DELETE api/posts/:id
 // @desc    Delete post
 // @access  Private
@@ -121,6 +162,50 @@ router.post(
         post.save().then(post => res.json(post));
       })
       .catch(err => res.status(404).json({ postnotfound: "no post found" }));
+  }
+);
+
+// @route   POST api/posts/comment/:id/:comment_id
+// @desc    Edit a comment in a post
+// @access  Private
+router.post(
+  "/comment/:id/:comment_id",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    Post.findById(req.params.id)
+      .then(post => {
+        const reqCommentId = req.params.comment_id;
+        const userId = req.user.id;
+
+        // Check to see if comment exist
+        const comment = post.comments.find(
+          comment => comment._id == reqCommentId
+        );
+
+        // Checking comment owner
+        if (comment) {
+          if (comment.user == userId) {
+            comment.text = req.body.text;
+            comment.date = Date.now();
+            post
+              .save()
+              .then(post => res.json(post))
+              .catch(error => {
+                throw error;
+              });
+          } else {
+            res.status(422).send({
+              message: "Unauthorized user"
+            });
+          }
+        } else {
+          res.status(500).send({
+            message: "Comment doesn't exist"
+          });
+        }
+      })
+      .catch(err => res.status(404).json({ postnotfound: "No post found" }));
+    // .catch(err => console.log("Err", err));
   }
 );
 

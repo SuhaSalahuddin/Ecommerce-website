@@ -1,6 +1,5 @@
 const Validator = require("validator");
 const isEmpty = require("./is-empty");
-const { typy } = require("typy");
 
 module.exports = function validatePostInput(data) {
   let errors = {};

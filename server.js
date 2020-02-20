@@ -12,6 +12,7 @@ const app = express();
 // Body parser middlewear
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+mongoose.set("useFindAndModify", false);
 
 // DB Config
 const db = require("./config/keys").mongoURI;
