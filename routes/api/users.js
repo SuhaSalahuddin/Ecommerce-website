@@ -6,8 +6,8 @@ const keys = require("../../config/keys");
 const passport = require("passport");
 
 // Load input validation
-const validateRegisterInput = require('../../validation/register');
-const validateLoginInput = require('../../validation/login');
+const validateRegisterInput = require("../../validation/register");
+const validateLoginInput = require("../../validation/login");
 
 // Load Buyer module
 const Buyer = require("../../models/Buyer");
@@ -16,23 +16,23 @@ const Buyer = require("../../models/Buyer");
 // @desc    Registers a user
 // @access   Public
 router.post("/register", (req, res) => {
-  const {errors, isValid} = validateRegisterInput(req.body);
+  const { errors, isValid } = validateRegisterInput(req.body);
 
   //Check Validation
-  if (!isValid){
+  if (!isValid) {
     return res.status(400).json(errors);
   }
 
   Buyer.findOne({ email: req.body.email })
-    .then(buyer => {
+    .then((buyer) => {
       if (buyer) {
-        errors.email = 'Email already exists';
+        errors.email = "Email already exists";
         return res.status(400).json(errors);
       } else {
         const newBuyer = new Buyer({
           name: req.body.name,
           email: req.body.email,
-          password: req.body.password
+          password: req.body.password,
         });
         // Encrypting Password to HASH
         bcrypt.genSalt(10, (err, salt) => {
@@ -41,14 +41,14 @@ router.post("/register", (req, res) => {
             newBuyer.password = hash;
             newBuyer
               .save()
-              .then(buyer => res.json(buyer))
-              .catch(err => console.log(err));
+              .then((buyer) => res.json(buyer))
+              .catch((err) => console.log(err));
           });
         });
         res.send(newBuyer);
       }
     })
-    .catch(err => {
+    .catch((err) => {
       console.log("Inside catch");
       console.log("error: ", err);
     });
@@ -58,10 +58,11 @@ router.post("/register", (req, res) => {
 // @desc    Login user
 // @acess   Public
 router.post("/login", (req, res) => {
-  const {errors, isValid} = validateLoginInput(req.body);
+  console.log("Connected!!!!!");
+  const { errors, isValid } = validateLoginInput(req.body);
 
   //Check Validation
-  if (!isValid){
+  if (!isValid) {
     return res.status(400).json(errors);
   }
 
@@ -69,14 +70,14 @@ router.post("/login", (req, res) => {
   const password = req.body.password;
 
   // Find user by email
-  Buyer.findOne({ email }).then(buyer => {
+  Buyer.findOne({ email }).then((buyer) => {
     // Check for buyer
     if (!buyer) {
-      errors.email = 'User not found';
+      errors.email = "User not found";
       return res.status(404).json(errors);
     }
     // Check password
-    bcrypt.compare(password, buyer.password).then(isMatch => {
+    bcrypt.compare(password, buyer.password).then((isMatch) => {
       if (isMatch) {
         // User matched
         const payload = { id: buyer.id, name: buyer.name }; //Create JWT payload
@@ -89,12 +90,12 @@ router.post("/login", (req, res) => {
           (err, token) => {
             res.json({
               success: true,
-              token: "Bearer " + token
+              token: "Bearer " + token,
             });
           }
         );
       } else {
-        errors.password = 'Incorrect Password';
+        errors.password = "Incorrect Password";
         return res.status(400).json(errors);
       }
     });
@@ -113,7 +114,7 @@ router.get(
     res.json({
       id: req.user.id,
       name: req.user.name,
-      email: req.user.email
+      email: req.user.email,
     });
   }
 );

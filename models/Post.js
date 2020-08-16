@@ -5,50 +5,56 @@ const Schema = mongoose.Schema;
 const PostSchema = new Schema({
   seller: {
     type: Schema.Types.ObjectId,
-    ref: "seller"
+    ref: "seller",
   },
   text: {
     type: String,
-    required: true
+    required: true,
   },
+  postImage: [
+    {
+      type: String,
+      // required: true,
+    },
+  ],
   name: {
-    type: String
+    type: String,
   },
   rates: [
     {
       user: {
         type: Schema.Types.ObjectId,
-        ref: "buyers"
+        ref: "buyers",
       },
       star: {
-        type: Number
+        type: Number,
         // required: true
-      }
-    }
+      },
+    },
   ],
   comments: [
     {
       user: {
         type: Schema.Types.ObjectId,
-        ref: "buyers"
+        ref: "buyers",
       },
       text: {
         type: String,
-        required: true
+        required: true,
       },
       name: {
-        type: String
+        type: String,
       },
       date: {
         type: Date,
-        default: Date.now
-      }
-    }
+        default: Date.now,
+      },
+    },
   ],
   date: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
 module.exports = Post = mongoose.model("post", PostSchema);

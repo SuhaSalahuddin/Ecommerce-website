@@ -2,6 +2,32 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const passport = require("passport");
+const multer = require("multer");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+    cb(null, true);
+  } else {
+    cb(new Error("File type should be jpeg or png"), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 5, //files more than 5MB will not be accepted
+  },
+  fileFilter: fileFilter,
+});
 
 // Load validation
 const validatePostInput = require("../../validation/post");
@@ -22,8 +48,8 @@ router.get("/test", (req, res) => res.json({ msg: "This is post test" }));
 router.get("/", (req, res) => {
   Post.find()
     .sort({ date: -1 })
-    .then(posts => res.json(posts))
-    .catch(err => res.status(404).json({ nopostsfound: "No posts found" }));
+    .then((posts) => res.json(posts))
+    .catch((err) => res.status(404).json({ msg: "No posts found" }));
 });
 
 // @route   GET api/posts/:id
@@ -31,19 +57,53 @@ router.get("/", (req, res) => {
 // @access  Public
 router.get("/:id", (req, res) => {
   Post.findById(req.params.id)
-    .then(post => res.json(post))
-    .catch(err =>
-      res.status(404).json({ nopostfound: "No post found with that ID" })
+    .then((post) => res.json(post))
+    .catch((err) =>
+      res.status(404).json({ msg: "No post found with that ID" })
     );
 });
 
-// @route   POST api/posts
+// // @route   POST api/posts/:seller_id
+// // @desc    Create post
+// // @access  Private
+// router.post(
+//   "/:seller_id",
+//   passport.authenticate("jwt", { session: false }),
+//   (req, res) => {
+//     const { errors, isValid } = validatePostInput(req.body);
+
+//     // Check validation
+//     if (!isValid) {
+//       return res.status(400).json(errors);
+//     }
+
+//     const newPost = new Post({
+//       text: req.body.text,
+//       name: req.body.name,
+//       seller: req.params.seller_id
+//     });
+
+//     newPost
+//       .save()
+//       .then(post => res.json(post))
+//       .catch(err => {
+//         console.log("Inside catch");
+//         console.log("error: ", err);
+//       });
+//   }
+// );
+
+// @route   POST api/posts/:id
 // @desc    Create post
 // @access  Private
 router.post(
-  "/",
+  "/:id",
   passport.authenticate("jwt", { session: false }),
+  upload.array("postImage", 4),
   (req, res) => {
+    let filesPath = [];
+    req.files.forEach((file) => filesPath.push(file.path));
+
     const { errors, isValid } = validatePostInput(req.body);
 
     // Check validation
@@ -51,18 +111,28 @@ router.post(
       return res.status(400).json(errors);
     }
 
-    const newPost = new Post({
-      text: req.body.text,
-      name: req.body.name,
-      seller: req.user.id
-    });
+    Seller.findById(req.params.id)
+      .then((seller) => {
+        const newPost = new Post({
+          text: req.body.text,
+          name: req.body.name,
+          postImage: filesPath,
+          seller: req.params.id,
+        });
 
-    newPost
-      .save()
-      .then(post => res.json(post))
-      .catch(err => {
-        console.log("Inside catch");
-        console.log("error: ", err);
+        console.log("post", newPost);
+
+        newPost
+          .save()
+          .then((post) => res.json(post))
+          .catch((err) => {
+            console.log("errors: ", err);
+          });
+      })
+      // .catch(err =>
+      //   res.status(404).json({ msg: "Requesting user is not a seller" })
+      .catch((err) => {
+        console.log("error: ", err, "seller id: ", req.params.id);
       });
   }
 );
@@ -74,9 +144,9 @@ router.post(
   "/:id",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    Seller.findOne({ seller: req.user.id }).then(seller => {
+    Seller.findOne({ seller: req.user.id }).then((seller) => {
       Post.findById(req.params.id)
-        .then(post => {
+        .then((post) => {
           // Check for the post owner
           if (post.seller.toString() != req.user.id) {
             return res
@@ -92,18 +162,18 @@ router.post(
                 $set: {
                   text: req.body.text,
                   name: req.body.name,
-                  date: Date.now()
-                }
+                  date: Date.now(),
+                },
               },
               { new: true }
             )
-              .then(post => res.json(post))
-              .catch(error => {
+              .then((post) => res.json(post))
+              .catch((error) => {
                 throw error;
               });
           }
         })
-        .catch(err => res.status(404).json({ postnotfound: "No post found" }));
+        .catch((err) => res.status(404).json({ msg: "No post found" }));
     });
   }
 );
@@ -115,9 +185,9 @@ router.delete(
   "/:id",
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    Seller.findOne({ seller: req.user.id }).then(seller => {
+    Seller.findOne({ seller: req.user.id }).then((seller) => {
       Post.findById(req.params.id)
-        .then(post => {
+        .then((post) => {
           // Check for the post owner
           if (post.seller.toString() != req.user.id) {
             return res
@@ -128,7 +198,9 @@ router.delete(
           // Delete post
           post.remove().then(() => res.json({ success: true }));
         })
-        .catch(err => res.status(404).json({ postnotfound: "No post found" }));
+        .catch((err) =>
+          res.status(404).json({ postnotfound: "No post found" })
+        );
     });
   }
 );
@@ -148,20 +220,20 @@ router.post(
     }
 
     Post.findById(req.params.id)
-      .then(post => {
+      .then((post) => {
         const newComment = {
           text: req.body.text,
           name: req.body.name,
-          user: req.user.id
+          user: req.user.id,
         };
 
         //Add to comment's array
         post.comments.unshift(newComment);
 
         // Save
-        post.save().then(post => res.json(post));
+        post.save().then((post) => res.json(post));
       })
-      .catch(err => res.status(404).json({ postnotfound: "no post found" }));
+      .catch((err) => res.status(404).json({ postnotfound: "no post found" }));
   }
 );
 
@@ -173,13 +245,13 @@ router.post(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     Post.findById(req.params.id)
-      .then(post => {
+      .then((post) => {
         const reqCommentId = req.params.comment_id;
         const userId = req.user.id;
 
         // Check to see if comment exist
         const comment = post.comments.find(
-          comment => comment._id == reqCommentId
+          (comment) => comment._id == reqCommentId
         );
 
         // Checking comment owner
@@ -189,22 +261,22 @@ router.post(
             comment.date = Date.now();
             post
               .save()
-              .then(post => res.json(post))
-              .catch(error => {
+              .then((post) => res.json(post))
+              .catch((error) => {
                 throw error;
               });
           } else {
             res.status(422).send({
-              message: "Unauthorized user"
+              message: "Unauthorized user",
             });
           }
         } else {
           res.status(500).send({
-            message: "Comment doesn't exist"
+            message: "Comment doesn't exist",
           });
         }
       })
-      .catch(err => res.status(404).json({ postnotfound: "No post found" }));
+      .catch((err) => res.status(404).json({ postnotfound: "No post found" }));
     // .catch(err => console.log("Err", err));
   }
 );
@@ -217,40 +289,40 @@ router.delete(
   passport.authenticate("jwt", { session: false }),
   (req, res) => {
     Post.findById(req.params.id)
-      .then(post => {
+      .then((post) => {
         const reqCommentId = req.params.comment_id;
         const userId = req.user.id;
 
         // Check to see if comment exist
         const comment = post.comments.find(
-          comment => comment._id == reqCommentId
+          (comment) => comment._id == reqCommentId
         );
         // Checking comment owner
         if (comment) {
           if (comment.user == userId) {
             const updatedCommentsList = post.comments.filter(
-              comment => comment._id != reqCommentId
+              (comment) => comment._id != reqCommentId
             );
 
             Post.findByIdAndUpdate(
               post._id,
               { comments: updatedCommentsList },
               { new: true }
-            ).then(updatedPost => {
+            ).then((updatedPost) => {
               res.send(updatedPost);
             });
           } else {
             res.status(422).send({
-              message: "Unauthorized user"
+              message: "Unauthorized user",
             });
           }
         } else {
           res.status(500).send({
-            message: "Comment doesn't exist"
+            message: "Comment doesn't exist",
           });
         }
       })
-      .catch(err => res.status(404).json({ message: "No post found" }));
+      .catch((err) => res.status(404).json({ message: "No post found" }));
     // .catch(err => console.log("Err", err));
   }
 );
@@ -269,12 +341,12 @@ router.post(
       return res.status(400).json(errors);
     }
 
-    Seller.findOne({ user: req.user.id }).then(seller => {
+    Seller.findOne({ user: req.user.id }).then((seller) => {
       Post.findById(req.params.id)
-        .then(post => {
+        .then((post) => {
           // check to see if user has already rated the post
           if (
-            post.rates.filter(rate => rate.user.toString() === req.user.id)
+            post.rates.filter((rate) => rate.user.toString() === req.user.id)
               .length > 0
           ) {
             return res
@@ -284,21 +356,23 @@ router.post(
 
           // New Rate
           else {
-            Post.findById(req.params.id).then(post => {
+            Post.findById(req.params.id).then((post) => {
               const newRate = {
                 star: req.body.star,
-                user: req.user.id
+                user: req.user.id,
               };
 
               //Add user id & rating to rate's array
               post.rates.unshift(newRate);
 
               // Save
-              post.save().then(post => res.json(post));
+              post.save().then((post) => res.json(post));
             });
           }
         })
-        .catch(err => res.status(404).json({ postnotfound: "No post found" }));
+        .catch((err) =>
+          res.status(404).json({ postnotfound: "No post found" })
+        );
       // .catch(err => console.log("Err", err));
     });
   }

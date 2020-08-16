@@ -9,6 +9,9 @@ const seller = require("./routes/api/seller");
 
 const app = express();
 
+// Multer middlewear
+app.use("/uploads", express.static("uploads"));
+
 // Body parser middlewear
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -21,7 +24,7 @@ const db = require("./config/keys").mongoURI;
 mongoose
   .connect(db, { useUnifiedTopology: true, useNewUrlParser: true })
   .then(() => console.log("MongoDB connected"))
-  .catch(err => console.log(err));
+  .catch((err) => console.log(err));
 
 // Passport middlewear
 app.use(passport.initialize());
