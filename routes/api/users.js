@@ -58,11 +58,12 @@ router.post("/register", (req, res) => {
 // @desc    Login user
 // @acess   Public
 router.post("/login", (req, res) => {
-  console.log("Connected!!!!!");
+  console.log("Connected with backend!", req.body);
   const { errors, isValid } = validateLoginInput(req.body);
 
   //Check Validation
   if (!isValid) {
+    console.log("INVALID ??????");
     return res.status(400).json(errors);
   }
 
@@ -73,33 +74,41 @@ router.post("/login", (req, res) => {
   Buyer.findOne({ email }).then((buyer) => {
     // Check for buyer
     if (!buyer) {
+      console.log("User not found!!");
       errors.email = "User not found";
       return res.status(404).json(errors);
     }
     // Check password
-    bcrypt.compare(password, buyer.password).then((isMatch) => {
-      if (isMatch) {
-        // User matched
-        const payload = { id: buyer.id, name: buyer.name }; //Create JWT payload
-
-        // Sign token
-        jwt.sign(
-          payload,
-          keys.secretOrKey,
-          { expiresIn: 3600 },
-          (err, token) => {
-            res.json({
-              success: true,
-              token: "Bearer " + token,
-            });
-          }
-        );
-      } else {
-        errors.password = "Incorrect Password";
-        return res.status(400).json(errors);
-      }
-    });
-    // .catch(err => console.log(err));
+    bcrypt
+      .compare(password, buyer.password)
+      .then((isMatch) => {
+        if (isMatch) {
+          // User matched
+          const payload = { id: buyer.id, name: buyer.name }; //Create JWT payload
+          console.log("Found user now bycrypting....");
+          // Sign token
+          jwt.sign(
+            payload,
+            keys.secretOrKey,
+            { expiresIn: 3600 },
+            (err, token) => {
+              console.log("Token Generated");
+              res.json({
+                success: true,
+                token: "Bearer " + token,
+              });
+            }
+          );
+        } else {
+          console.log("Incorrect pwd");
+          errors.password = "Incorrect Password";
+          return res.status(400).json(errors);
+        }
+      })
+      .catch((err) => {
+        console.log("inside error");
+        console.log(err);
+      });
     // res.send(newBuyer);
   });
 });
