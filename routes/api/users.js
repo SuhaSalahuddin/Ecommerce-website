@@ -16,10 +16,13 @@ const Buyer = require("../../models/Buyer");
 // @desc    Registers a user
 // @access   Public
 router.post("/register", (req, res) => {
+  console.log("Connected with backend REGISTER!", req.body);
   const { errors, isValid } = validateRegisterInput(req.body);
 
   //Check Validation
   if (!isValid) {
+    console.log("Inside isvalid | REGISTER");
+    // console.log("Invalid Errors | REGISTER: ", errors);
     return res.status(400).json(errors);
   }
 
@@ -30,9 +33,11 @@ router.post("/register", (req, res) => {
         return res.status(400).json(errors);
       } else {
         const newBuyer = new Buyer({
-          name: req.body.name,
+          fname: req.body.fname,
+          lname: req.body.lname,
           email: req.body.email,
           password: req.body.password,
+          gender: req.body.gender,
         });
         // Encrypting Password to HASH
         bcrypt.genSalt(10, (err, salt) => {
@@ -58,12 +63,12 @@ router.post("/register", (req, res) => {
 // @desc    Login user
 // @acess   Public
 router.post("/login", (req, res) => {
-  console.log("Connected with backend!", req.body);
+  console.log("Connected with backend LOGIN!", req.body);
   const { errors, isValid } = validateLoginInput(req.body);
 
   //Check Validation
   if (!isValid) {
-    console.log("INVALID ??????");
+    console.log("INVALID LOGIN");
     return res.status(400).json(errors);
   }
 

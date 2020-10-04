@@ -4,17 +4,27 @@ const isEmpty = require("./is-empty");
 module.exports = function validateRegisterInput(data) {
   let errors = {};
 
-  data.name = !isEmpty(data.name) ? data.name : "";
+  data.fname = !isEmpty(data.fname) ? data.fname : "";
+  data.lname = !isEmpty(data.lname) ? data.lname : "";
   data.email = !isEmpty(data.email) ? data.email : "";
   data.password = !isEmpty(data.password) ? data.password : "";
   data.password2 = !isEmpty(data.password2) ? data.password2 : "";
+  data.gender = !isEmpty(data.gender) ? data.gender : "";
 
-  // Name
-  if (!Validator.isLength(data.name, { min: 2, max: 30 })) {
-    errors.name = "Name must be between 2 & 30 characters";
+  // First Name
+  if (!Validator.isLength(data.fname, { min: 2, max: 30 })) {
+    errors.fname = "First Name must be between 2 & 30 characters";
   }
-  if (Validator.isEmpty(data.name)) {
-    errors.name = "Name field is required";
+  if (Validator.isEmpty(data.fname)) {
+    errors.fname = "First Name field is required";
+  }
+
+  // Last Name
+  if (!Validator.isLength(data.lname, { min: 2, max: 30 })) {
+    errors.lname = "Last Name must be between 2 & 30 characters";
+  }
+  if (Validator.isEmpty(data.lname)) {
+    errors.lname = "Last Name field is required";
   }
 
   // Email
@@ -26,8 +36,8 @@ module.exports = function validateRegisterInput(data) {
   }
 
   // Password
-  if (!Validator.isLength(data.password, { min: 6, max: 20 })) {
-    errors.password = "Password must be between 6 & 20 characters";
+  if (!Validator.isLength(data.password, { min: 3, max: 20 })) {
+    errors.password = "Password must be between 3 & 20 characters";
   }
   if (Validator.isEmpty(data.password)) {
     errors.password = "Password field is required";
@@ -41,8 +51,13 @@ module.exports = function validateRegisterInput(data) {
     errors.password2 = "Confirm password field is required";
   }
 
+  // Gender
+  if (Validator.isEmpty(data.gender)) {
+    errors.gender = "Gender field is required";
+  }
+
   return {
     errors: errors,
-    isValid: isEmpty(errors)
+    isValid: isEmpty(errors),
   };
 };

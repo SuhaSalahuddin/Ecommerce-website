@@ -3,18 +3,26 @@ const Schema = mongoose.Schema;
 
 //Create schema
 const BuyerSchema = new Schema({
-  name: {
+  fname: {
     type: String,
-    required: true
+    required: true,
+  },
+  lname: {
+    type: String,
+    required: true,
   },
   email: {
     type: String,
-    required: true
+    required: true,
   },
   password: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
+  gender: {
+    type: String,
+    possibleValues: ["male", "female", "other"],
+  },
 });
 
 module.exports = Buyer = mongoose.model("buyers", BuyerSchema);
