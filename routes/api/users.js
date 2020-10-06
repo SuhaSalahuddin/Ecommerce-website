@@ -46,11 +46,31 @@ router.post("/register", (req, res) => {
             newBuyer.password = hash;
             newBuyer
               .save()
-              .then((buyer) => res.json(buyer))
+              .then((buyer) => {
+                // res.json(buyer);
+                const payload = { id: buyer.id, fname: buyer.fname }; //Create JWT payload
+                console.log("Now bycrypting....");
+                // Sign token
+                jwt.sign(
+                  payload,
+                  keys.secretOrKey,
+                  { expiresIn: 3600 },
+                  (err, token) => {
+                    console.log("Token Generated");
+                    res.send({
+                      success: true,
+                      token: "Bearer " + token,
+                      buyer,
+                    });
+                  }
+                );
+                // console.log("After token generation", payload.fname);
+              })
               .catch((err) => console.log(err));
           });
         });
-        res.send(newBuyer);
+        // res.send(newBuyer);
+        // res.send({ newBuyer, token: "Bearer " + token });
       }
     })
     .catch((err) => {
@@ -89,7 +109,7 @@ router.post("/login", (req, res) => {
       .then((isMatch) => {
         if (isMatch) {
           // User matched
-          const payload = { id: buyer.id, name: buyer.name }; //Create JWT payload
+          const payload = { id: buyer.id, fname: buyer.fname }; //Create JWT payload
           console.log("Found user now bycrypting....");
           // Sign token
           jwt.sign(
