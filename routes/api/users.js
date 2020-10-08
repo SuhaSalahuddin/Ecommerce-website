@@ -48,7 +48,13 @@ router.post("/register", (req, res) => {
               .save()
               .then((buyer) => {
                 // res.json(buyer);
-                const payload = { id: buyer.id, fname: buyer.fname }; //Create JWT payload
+                const payload = {
+                  id: buyer.id,
+                  fname: buyer.fname,
+                  lname: buyer.lname,
+                  email: buyer.email,
+                  gender: buyer.gender,
+                }; //Create JWT payload
                 console.log("Now bycrypting....");
                 // Sign token
                 jwt.sign(

@@ -77,10 +77,11 @@ router.get("/userName/:userName", (req, res) => {
 // @route   GET api/seller/user/:user_id
 // @desc    Get profile of seller by their id
 // @acess   Public
+// router.get("/user/:user_id", (req, res) => {
 router.get("/user/:user_id", (req, res) => {
   const errors = {};
 
-  Seller.findOne({ buyer_id: req.params.buyer_id })
+  Seller.findOne({ buyer: req.params.user_id })
     .populate("buyer", ["name", "email"])
     .then((seller) => {
       if (!seller) {
