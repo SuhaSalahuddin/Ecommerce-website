@@ -7,8 +7,12 @@ const users = require("./routes/api/users");
 const posts = require("./routes/api/posts");
 const seller = require("./routes/api/seller");
 const order = require("./routes/api/order");
+const cookieParser = require("cookie-parser");
 
 const app = express();
+
+// Cookie middlewear
+// app.use(cookieParser);
 
 // Multer middlewear
 app.use("/uploads", express.static("uploads"));

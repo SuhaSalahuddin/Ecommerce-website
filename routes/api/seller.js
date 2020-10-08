@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
 const passport = require("passport"); //protected route
+const jwt_decode = require("jwt-decode");
 
 // Load validation
 const validateSellerInput = require("../../validation/seller");
@@ -98,9 +99,15 @@ router.get("/user/:user_id", (req, res) => {
 // @acess   Private
 router.post(
   "/",
-  passport.authenticate("jwt", { session: false }),
+  // passport.authenticate("jwt", { session: false }),
   (req, res) => {
-    console.log("Req.Header: ", req.headers);
+    const token = req.body.headers["Authorization"];
+    console.log("Token: ", token);
+    const decodedToken = jwt_decode(token);
+    console.log("Decoded Token: ", decodedToken.id);
+    const id = decodedToken.id;
+
+    // console.log("Request.Body: ", req.body);
     const { errors, isValid } = validateSellerInput(req.body);
 
     // Check validation
@@ -111,7 +118,7 @@ router.post(
 
     // get fields
     const sellerFields = {};
-    sellerFields.buyer = req.user.id;
+    sellerFields.buyer = id;
     if (req.body.userName) sellerFields.userName = req.body.userName;
     if (req.body.cNIC) sellerFields.cNIC = req.body.cNIC;
     if (req.body.phone) sellerFields.phone = req.body.phone;
@@ -163,11 +170,11 @@ router.post(
     if (req.body.facebook) sellerFields.socials.facebook = req.body.facebook;
     if (req.body.twitter) sellerFields.socials.twitter = req.body.twitter;
 
-    Seller.findOne({ buyer: req.user.id }).then((seller) => {
+    Seller.findOne({ buyer: id }).then((seller) => {
       if (seller) {
         // Update
         Seller.findOneAndUpdate(
-          { buyer: req.user.id },
+          { buyer: id },
           { $set: sellerFields },
           { new: true }
         )

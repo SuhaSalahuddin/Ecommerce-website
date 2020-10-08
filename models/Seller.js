@@ -15,7 +15,7 @@ const SellerSchema = new Schema({
   cNIC: {
     type: Number,
     required: true,
-    max: 13,
+    // max: 14,
   },
   phone: {
     type: String,

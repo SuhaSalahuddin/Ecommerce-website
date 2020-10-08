@@ -3,6 +3,7 @@ const isEmpty = require("./is-empty");
 
 module.exports = function validateSellerInput(data) {
   let errors = {};
+  // console.log("Inside Validation\n Data:", data);
 
   data.userName = !isEmpty(data.userName) ? data.userName : "";
   data.cNIC = !isEmpty(data.cNIC) ? data.cNIC : "";
@@ -19,7 +20,7 @@ module.exports = function validateSellerInput(data) {
   if (Validator.isEmpty(data.userName)) {
     errors.userName = "UserName is required";
   }
-  if (!Validator.isLength(data.cNIC, { min: 13, max: 13 })) {
+  if (!Validator.isLength(data.cNIC, { min: 13, max: 14 })) {
     errors.cNIC = "cNIC needs to be 13 digits";
   }
   if (Validator.isEmpty(data.cNIC)) {
@@ -34,7 +35,7 @@ module.exports = function validateSellerInput(data) {
   if (Validator.isEmpty(data.skills)) {
     errors.skills = "Skill field is required";
   }
-  if (!Validator.isLength(data.phone, { min: 11, max: 14 })) {
+  if (!Validator.isLength(data.phone, { min: 11, max: 15 })) {
     errors.phone = "Phone no. needs to be between 11 to 14 characters";
   }
   if (Validator.isEmpty(data.phone)) {
@@ -43,7 +44,7 @@ module.exports = function validateSellerInput(data) {
   if (Validator.isEmpty(data.location)) {
     errors.location = "Location field is required";
   }
-  if (!Validator.isLength(data.age, { min: 1, max: 3 })) {
+  if (!Validator.isLength(data.age, { min: 1, max: 4 })) {
     errors.age = "age needs to be between 1 to 3 characters";
   }
   if (Validator.isEmpty(data.age)) {

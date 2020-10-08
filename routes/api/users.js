@@ -56,7 +56,7 @@ router.post("/register", (req, res) => {
                   keys.secretOrKey,
                   { expiresIn: 3600 },
                   (err, token) => {
-                    console.log("Token Generated");
+                    console.log("Token Generated: ", token);
                     res.send({
                       success: true,
                       token: "Bearer " + token,
