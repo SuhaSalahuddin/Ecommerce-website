@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 const passport = require("passport");
 const multer = require("multer");
+const jwt_decode = require("jwt-decode");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -56,7 +57,7 @@ router.get("/", (req, res) => {
 // @desc    Get post by id
 // @access  Public
 router.get("/:id", (req, res) => {
-  Post.findById(req.params.id)
+  Post.find({seller: req.params.id})
     .then((post) => res.json(post))
     .catch((err) =>
       res.status(404).json({ msg: "No post found with that ID" })
@@ -98,11 +99,18 @@ router.get("/:id", (req, res) => {
 // @access  Private
 router.post(
   "/:id",
-  passport.authenticate("jwt", { session: false }),
-  upload.array("postImage", 4),
+  // passport.authenticate("jwt", { session: false }),
+  upload.single("postImage"),
   (req, res) => {
-    let filesPath = [];
-    req.files.forEach((file) => filesPath.push(file.path));
+    // console.log("Adding post BACKEND!!!")
+    // const token = req.body.headers["Authorization"];
+    // console.log("Token: ", token);
+    // const decodedToken = jwt_decode(token);
+    // console.log("Decoded Token: ", decodedToken.id);
+    // const id = decodedToken.id;
+
+    console.log("filesPath: ", req.path);
+    let filesPath = req.path;
 
     const { errors, isValid } = validatePostInput(req.body);
 
@@ -110,12 +118,16 @@ router.post(
     if (!isValid) {
       return res.status(400).json(errors);
     }
+    console.log("req.body: ", req.body)
 
     Seller.findById(req.params.id)
       .then((seller) => {
         const newPost = new Post({
-          text: req.body.text,
           name: req.body.name,
+          price: req.body.price,
+          tagline: req.body.tagline,
+          category: req.body.category,
+          description: req.body.description,
           postImage: filesPath,
           seller: req.params.id,
         });

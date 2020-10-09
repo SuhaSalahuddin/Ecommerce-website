@@ -79,19 +79,24 @@ router.get("/userName/:userName", (req, res) => {
 // @acess   Public
 // router.get("/user/:user_id", (req, res) => {
 router.get("/user/:user_id", (req, res) => {
+  console.log("Get User by id")
   const errors = {};
 
   Seller.findOne({ buyer: req.params.user_id })
     .populate("buyer", ["name", "email"])
     .then((seller) => {
       if (!seller) {
-        errors.noseller = "This buyer is not a seller";
+        errors.noseller = "This buyer is not a seller!!";
+        console.log("Inside if")
         res.status(404).json(errors);
+        // res.json(errors);
       }
-      res.json(seller);
+      else res.json(seller);
     })
-    .catch((err) =>
+    .catch((err) =>{
+      console.log(err)
       res.status(404).json({ seller: "This buyer is not a seller" })
+    }
     );
 });
 

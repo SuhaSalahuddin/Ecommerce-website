@@ -7,7 +7,23 @@ const PostSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "seller",
   },
-  text: {
+  // title
+  name:{
+    type: String,
+    required: true,
+  },
+  tagline:{
+    type: String
+  },
+  price: {
+    type: Number,
+    // required: true,
+  },
+  category:{
+    type: String,
+    possibleValues: ["baking", "stitching", "development", "arts"]
+  },
+  description: {
     type: String,
     required: true,
   },
@@ -17,9 +33,6 @@ const PostSchema = new Schema({
       // required: true,
     },
   ],
-  name: {
-    type: String,
-  },
   rates: [
     {
       user: {

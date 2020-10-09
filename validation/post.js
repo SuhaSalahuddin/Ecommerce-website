@@ -4,15 +4,25 @@ const isEmpty = require("./is-empty");
 module.exports = function validatePostInput(data) {
   let errors = {};
 
-  data.text = !isEmpty(data.text) ? data.text : "";
+  data.name = !isEmpty(data.name) ? data.name : "";
+  data.description = !isEmpty(data.description) ? data.description : "";
 
-  // Text
-  if (!Validator.isLength(data.text, { min: 5, max: 300 })) {
-    errors.text = "Post must be between 5 & 300 characters";
+  // Name
+  if (!Validator.isLength(data.name, { min: 5, max:100 })) {
+    errors.name = "Post Name must be between 5 & 100 characters";
   }
-  if (Validator.isEmpty(data.text)) {
-    errors.text = "Text field is required";
+  if (Validator.isEmpty(data.name)) {
+    errors.name = "Name field is required";
   }
+
+  // Description
+  if (!Validator.isLength(data.description, { min: 5, max: 300 })) {
+    errors.description = "Post description must be between 5 & 300 characters";
+  }
+  if (Validator.isEmpty(data.description)) {
+    errors.description = "Description field is required";
+  }
+
 
   // // Comment
   // if (!Validator.isLength(data.comments.text, { min: 5, max: 300 })) {

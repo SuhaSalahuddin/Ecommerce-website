@@ -115,7 +115,10 @@ router.post("/login", (req, res) => {
       .then((isMatch) => {
         if (isMatch) {
           // User matched
-          const payload = { id: buyer.id, fname: buyer.fname }; //Create JWT payload
+          const payload = { id: buyer.id, fname: buyer.fname,
+            lname: buyer.lname,
+            email: buyer.email,
+            gender: buyer.gender, }; //Create JWT payload
           console.log("Found user now bycrypting....");
           // Sign token
           jwt.sign(
